@@ -1,11 +1,12 @@
 /*
- * Copyright 2017 Huawei Technologies Co., Ltd
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,32 +17,23 @@
 
 package io.servicecomb.saga.core;
 
+import static io.servicecomb.saga.core.SagaResponse.EMPTY_RESPONSE;
+import static io.servicecomb.saga.core.SagaResponse.NONE_RESPONSE;
+
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import io.servicecomb.saga.core.application.interpreter.FromJsonFormat;
 
 public class SagaContextImpl implements SagaContext {
-  public static final SagaResponse NONE_RESPONSE = new SagaResponse() {
-    @Override
-    public boolean succeeded() {
-      return false;
-    }
-
-    @Override
-    public String body() {
-      return "{\n"
-          + "  \"sagaChildren\": [\"none\"]\n"
-          + "}";
-    }
-  };
 
   private final Map<String, SagaResponse> completedTransactions;
   private final Map<String, SagaResponse> completedCompensations;
@@ -51,10 +43,10 @@ public class SagaContextImpl implements SagaContext {
 
   public SagaContextImpl(FromJsonFormat<Set<String>> childrenExtractor) {
     this.childrenExtractor = childrenExtractor;
-    this.completedTransactions = new HashMap<>();
+    this.completedTransactions = new ConcurrentHashMap<>();
     this.completedCompensations = new HashMap<>();
-    this.abortedTransactions = new HashSet<>();
-    this.hangingTransactions = new HashMap<>();
+    this.abortedTransactions = new ConcurrentSkipListSet<>();
+    this.hangingTransactions = new ConcurrentHashMap<>();
   }
 
   @Override
@@ -84,7 +76,7 @@ public class SagaContextImpl implements SagaContext {
   }
 
   @Override
-  public void abortTransaction(SagaRequest request) {
+  public void abortTransaction(SagaRequest request, SagaResponse response) {
     completedTransactions.remove(request.id());
     abortedTransactions.add(request.id());
     hangingTransactions.remove(request.id());
@@ -108,11 +100,25 @@ public class SagaContextImpl implements SagaContext {
     return completedTransactions.getOrDefault(requestId, NONE_RESPONSE);
   }
 
-  @Override
-  public List<SagaResponse> responsesOf(String[] parentRequestIds) {
+  private List<SagaResponse> responsesOf(String[] parentRequestIds) {
     return Arrays.stream(parentRequestIds)
         .map(this::responseOf)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public SagaResponse responseOf(String[] parentRequestIds) {
+    List<SagaResponse> responses = responsesOf(parentRequestIds);
+
+    if (responses.isEmpty()) {
+      return EMPTY_RESPONSE;
+    }
+
+    if (responses.size() == 1) {
+      return responses.get(0);
+    }
+
+    return new CompositeSagaResponse(responses);
   }
 
   @Override

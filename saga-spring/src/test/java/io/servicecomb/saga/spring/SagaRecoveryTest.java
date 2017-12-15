@@ -1,11 +1,12 @@
 /*
- * Copyright 2017 Huawei Technologies Co., Ltd
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,24 +29,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static io.servicecomb.saga.core.NoOpSagaRequest.SAGA_START_REQUEST;
 import static java.util.Collections.singletonMap;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import io.servicecomb.saga.core.TransactionCompensatedEvent;
-import io.servicecomb.saga.core.PersistentStore;
-import io.servicecomb.saga.core.SagaEndedEvent;
-import io.servicecomb.saga.core.SagaRequest;
-import io.servicecomb.saga.core.SagaRequestImpl;
-import io.servicecomb.saga.core.SagaResponse;
-import io.servicecomb.saga.core.SagaStartedEvent;
-import io.servicecomb.saga.core.SuccessfulSagaResponse;
-import io.servicecomb.saga.core.ToJsonFormat;
-import io.servicecomb.saga.core.TransactionAbortedEvent;
-import io.servicecomb.saga.core.TransactionEndedEvent;
-import io.servicecomb.saga.core.TransactionStartedEvent;
-import io.servicecomb.saga.format.JacksonFallback;
-import io.servicecomb.saga.format.JacksonRestCompensation;
-import io.servicecomb.saga.format.JacksonRestTransaction;
-import io.servicecomb.saga.format.SagaEventFormat;
-import io.servicecomb.saga.spring.SagaRecoveryTest.EventPopulatingConfig;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -57,6 +40,26 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+
+import io.servicecomb.saga.core.PersistentStore;
+import io.servicecomb.saga.core.SagaEndedEvent;
+import io.servicecomb.saga.core.SagaRequest;
+import io.servicecomb.saga.core.SagaRequestImpl;
+import io.servicecomb.saga.core.SagaResponse;
+import io.servicecomb.saga.core.SagaStartedEvent;
+import io.servicecomb.saga.core.SuccessfulSagaResponse;
+import io.servicecomb.saga.core.ToJsonFormat;
+import io.servicecomb.saga.core.TransactionAbortedEvent;
+import io.servicecomb.saga.core.TransactionCompensatedEvent;
+import io.servicecomb.saga.core.TransactionEndedEvent;
+import io.servicecomb.saga.core.TransactionStartedEvent;
+import io.servicecomb.saga.format.JacksonFallback;
+import io.servicecomb.saga.format.JacksonRestCompensation;
+import io.servicecomb.saga.format.JacksonRestTransaction;
+import io.servicecomb.saga.format.SagaEventFormat;
+import io.servicecomb.saga.spring.SagaRecoveryTest.EventPopulatingConfig;
 import wiremock.org.apache.http.HttpStatus;
 
 @RunWith(SpringRunner.class)

@@ -1,11 +1,12 @@
 /*
- * Copyright 2017 Huawei Technologies Co., Ltd
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,18 +42,15 @@ class TransactionTaskConsumer implements TaskConsumer {
   private final Map<String, SagaTask> tasks;
   private final SagaContext sagaContext;
   private final CompletionService<Operation> executorService;
-  private final RecoveryPolicy recoveryPolicy;
 
   TransactionTaskConsumer(
       Map<String, SagaTask> tasks,
       SagaContext sagaContext,
-      CompletionService<Operation> executorService,
-      RecoveryPolicy recoveryPolicy) {
+      CompletionService<Operation> executorService) {
 
     this.tasks = tasks;
     this.sagaContext = sagaContext;
     this.executorService = executorService;
-    this.recoveryPolicy = recoveryPolicy;
   }
 
   @Segment(name = "consumeTask", category = "application", library = "kamon")
@@ -95,29 +93,29 @@ class TransactionTaskConsumer implements TaskConsumer {
 
   @Segment(name = "submitCallable", category = "application", library = "kamon")
   private Future<Operation> futureOf(SagaRequest request) {
-    return executorService.submit(new OperationCallable(tasks, recoveryPolicy, request));
+    return executorService.submit(new OperationCallable(tasks, request, sagaContext.responseOf(request.parents())));
   }
 
   @EnableKamon
   private static class OperationCallable implements Callable<Operation> {
 
     private final SagaRequest request;
-    private final RecoveryPolicy recoveryPolicy;
     private final Map<String, SagaTask> tasks;
+    private final SagaResponse parentResponse;
 
     private OperationCallable(
         Map<String, SagaTask> tasks,
-        RecoveryPolicy recoveryPolicy,
-        SagaRequest request) {
+        SagaRequest request,
+        SagaResponse parentResponse) {
       this.request = request;
-      this.recoveryPolicy = recoveryPolicy;
       this.tasks = tasks;
+      this.parentResponse = parentResponse;
     }
 
     @Trace("runTransactionCallable")
     @Override
     public Operation call() throws Exception {
-      recoveryPolicy.apply(tasks.get(request.task()), request);
+      tasks.get(request.task()).commit(request, parentResponse);
       return request.transaction();
     }
   }

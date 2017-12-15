@@ -1,11 +1,12 @@
 /*
- * Copyright 2017 Huawei Technologies Co., Ltd
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,29 +17,20 @@
 
 package io.servicecomb.saga.core;
 
-import java.util.List;
 import java.util.function.Consumer;
 
-public interface SagaContext {
+public interface SagaContext extends EventContext {
   boolean isCompensationStarted();
 
   boolean isTransactionCompleted(SagaRequest request);
 
   boolean isCompensationCompleted(SagaRequest request);
 
-  void beginTransaction(SagaRequest request);
-
-  void endTransaction(SagaRequest request, SagaResponse response);
-
-  void abortTransaction(SagaRequest request);
-
-  void compensateTransaction(SagaRequest request, SagaResponse response);
-
   void handleHangingTransactions(Consumer<SagaRequest> consumer);
 
   SagaResponse responseOf(String requestId);
 
-  List<SagaResponse> responsesOf(String[] parentRequestIds);
-
   boolean isChosenChild(SagaRequest request);
+
+  SagaResponse responseOf(String[] parentRequestIds);
 }

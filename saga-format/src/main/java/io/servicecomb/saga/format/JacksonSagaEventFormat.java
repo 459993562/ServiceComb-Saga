@@ -1,11 +1,12 @@
 /*
- * Copyright 2017 Huawei Technologies Co., Ltd
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,8 +20,13 @@ package io.servicecomb.saga.format;
 import static io.servicecomb.saga.core.NoOpSagaRequest.SAGA_END_REQUEST;
 import static io.servicecomb.saga.core.NoOpSagaRequest.SAGA_START_REQUEST;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiFunction;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.servicecomb.saga.core.TransactionCompensatedEvent;
+
 import io.servicecomb.saga.core.FailedSagaRequestContext;
 import io.servicecomb.saga.core.SagaEndedEvent;
 import io.servicecomb.saga.core.SagaEvent;
@@ -28,13 +34,10 @@ import io.servicecomb.saga.core.SagaException;
 import io.servicecomb.saga.core.SagaStartedEvent;
 import io.servicecomb.saga.core.SuccessfulSagaRequestContext;
 import io.servicecomb.saga.core.TransactionAbortedEvent;
+import io.servicecomb.saga.core.TransactionCompensatedEvent;
 import io.servicecomb.saga.core.TransactionEndedEvent;
 import io.servicecomb.saga.core.TransactionStartedEvent;
 import io.servicecomb.saga.transports.TransportFactory;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiFunction;
 
 public class JacksonSagaEventFormat implements SagaEventFormat {
   private final Map<String, BiFunction<String, String, SagaEvent>> eventFactories = new HashMap<String, BiFunction<String, String, SagaEvent>>() {{

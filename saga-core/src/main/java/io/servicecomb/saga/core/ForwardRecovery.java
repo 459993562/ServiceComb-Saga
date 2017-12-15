@@ -1,11 +1,12 @@
 /*
- * Copyright 2017 Huawei Technologies Co., Ltd
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,15 +26,11 @@ public class ForwardRecovery implements RecoveryPolicy {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Override
-  public void apply(SagaTask task, SagaRequest request) {
+  public SagaResponse apply(SagaTask task, SagaRequest request, SagaResponse parentResponse) {
     try {
-      boolean success = false;
       do {
         try {
-          task.commit(request);
-          success = true;
-        } catch (SagaStartFailedException e) {
-          throw e;
+          return request.transaction().send(request.serviceName(), parentResponse);
         } catch (Exception e) {
           log.error("Applying {} policy due to failure in transaction {} of service {}",
               description(),
@@ -43,7 +40,7 @@ public class ForwardRecovery implements RecoveryPolicy {
           );
           Thread.sleep(request.failRetryDelayMilliseconds());
         }
-      } while (!success);
+      } while (true);
     } catch (InterruptedException ignored) {
       log.warn("Applying {} interrupted in transaction {} of service {}",
           description(),
